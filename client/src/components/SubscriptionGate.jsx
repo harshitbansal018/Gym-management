@@ -38,17 +38,20 @@ export function SubscriptionGate() {
 
   if (status?.active) return <Outlet />;
 
-  const message = `Hi, I want to activate my gym "${user?.name || ""}" (${user?.email || ""}) on FitManager. My plan: ${status?.plan || "Starter"}.`;
+  const suspended = status?.status === "suspended";
+  const message = suspended
+    ? `Hi, my FitManager gym account (${user?.email || ""}) is suspended. I'd like to renew/reactivate. Plan: ${status?.plan || "Starter"}.`
+    : `Hi, I want to activate my FitManager gym account (${user?.email || ""}). Plan: ${status?.plan || "Starter"}.`;
   const payLink = waLink(platform?.whatsapp, message);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 dark:bg-slate-950">
       <div className="surface w-full max-w-lg p-8 text-center">
-        <span className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-700">Pending Activation</span>
-        <h1 className="mt-5 text-2xl font-black text-slate-950 dark:text-white">Your gym isn't active yet</h1>
+        <span className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-700">{suspended ? "Account Suspended" : "Pending Activation"}</span>
+        <h1 className="mt-5 text-2xl font-black text-slate-950 dark:text-white">{suspended ? "Your gym is suspended" : "Your gym isn't active yet"}</h1>
         <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-          To unlock your dashboard, complete payment for the <strong>{status?.plan || "Starter"}</strong> plan.
-          Message us on WhatsApp to pay — we'll activate your account right after.
+          To {suspended ? "reactivate" : "unlock"} your dashboard, complete payment for the <strong>{status?.plan || "Starter"}</strong> plan.
+          Message us on WhatsApp to pay — we'll {suspended ? "restore" : "activate"} your account right after.
         </p>
 
         {payLink ? (
