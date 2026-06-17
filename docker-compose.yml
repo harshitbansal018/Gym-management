@@ -1,0 +1,59 @@
+# FitManager — full production stack (db + API + web)
+#
+#   1. cp .env.production.example .env   and fill in real values
+#   2. docker compose up -d --build
+#   3. docker compose exec server npm run seed   # one-time: create platform admin
+#
+# Using a managed Postgres (e.g. Neon, AWS RDS) instead of the bundled db?
+#   - Comment out the whole `db:` service and its `depends_on` block
+#   - Point DATABASE_URL in .env at the managed instance
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Not published to the host by default — only the API talks to it.
+
+  server:
+    build:
+      context: ./server
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "5000"
+
+  client:
+    build:
+      context: ./client
+      args:
+        # Same-origin proxy (see client/nginx.conf). Change only if the API
+        # is hosted on a different domain.
+        VITE_API_URL: /api/v1
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      - "80:80"
+      # For HTTPS, terminate TLS at a reverse proxy (Caddy/Traefik/nginx) or a
+      # cloud load balancer in front of this service.
+
+volumes:
+  db_data:

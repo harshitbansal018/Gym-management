@@ -1,0 +1,19 @@
+# Dependencies (re-installed with `npm install`)
+node_modules/
+**/node_modules/
+
+# Secrets — NEVER commit these
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Build output (re-generated with `npm run build`)
+dist/
+**/dist/
+
+# Logs & OS junk
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
