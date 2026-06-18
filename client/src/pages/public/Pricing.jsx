@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Seo } from "../../components/Seo";
 
 const pricingPlans = [
   { name: "Starter", price: "₹499", period: "/month" },
@@ -9,6 +10,11 @@ const pricingPlans = [
 export function Pricing() {
   return (
     <main className="mx-auto max-w-7xl px-4 py-16">
+      <Seo
+        title="Pricing"
+        description="Simple FitManager pricing for gyms of every size — Starter, Professional, and Enterprise plans. Start a free trial."
+        path="/pricing"
+      />
       <h1 className="text-4xl font-black text-slate-950 dark:text-white">Pricing</h1>
       <p className="mt-3 text-slate-600 dark:text-slate-300">Choose a plan that fits your gym network.</p>
       <div className="mt-8 grid gap-4 md:grid-cols-3">

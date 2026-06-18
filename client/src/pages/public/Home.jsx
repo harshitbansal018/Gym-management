@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { FiActivity, FiArrowRight, FiBarChart2, FiCheckCircle, FiCreditCard, FiSettings, FiUsers } from "react-icons/fi";
+import { Seo } from "../../components/Seo";
 
 const pricingPlans = [
   { name: "Starter", price: "₹499", period: "/month", featured: false, features: ["1 gym branch", "300 members", "Basic reports", "Email support"] },
@@ -32,6 +33,11 @@ const setupSteps = [
 export function Home() {
   return (
     <>
+      <Seo
+        title="Gym Management Software for Gym Owners"
+        description="Run your gym with FitManager — manage members, membership plans, payments, attendance, and renewals from one simple dashboard. Built for gym owners."
+        path="/"
+      />
       <section className="bg-white dark:bg-slate-950">
         <div className="mx-auto grid min-h-[calc(100vh-68px)] max-w-7xl items-center gap-10 px-4 py-14 lg:grid-cols-[1.05fr_0.95fr]">
           <div>

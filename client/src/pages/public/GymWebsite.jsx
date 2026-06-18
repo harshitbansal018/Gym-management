@@ -4,6 +4,7 @@ import { FiClock, FiMail, FiMapPin, FiMenu, FiPhone, FiX } from "react-icons/fi"
 import { FaWhatsapp } from "react-icons/fa";
 import { ApiState, useApiData } from "../../hooks/useApiData";
 import { waLink } from "../../utils/whatsapp";
+import { Seo } from "../../components/Seo";
 
 const sections = [["Plans", "#plans"], ["Trainers", "#trainers"], ["Contact", "#contact"]];
 
@@ -101,6 +102,22 @@ export function GymWebsite() {
       <ApiState {...state} empty={!state.data}>
         {gym && (
           <>
+            <Seo
+              title={gym.name}
+              description={gym.description || `Join ${gym.name} — view membership plans, trainers, timings, and contact details.`}
+              image={gym.logo_url || undefined}
+              jsonLd={{
+                "@context": "https://schema.org",
+                "@type": "HealthClub",
+                name: gym.name,
+                description: gym.description || undefined,
+                image: gym.logo_url || undefined,
+                telephone: gym.phone || undefined,
+                email: gym.email || undefined,
+                address: gym.address ? { "@type": "PostalAddress", streetAddress: gym.address } : undefined,
+                openingHours: gym.working_hours || undefined
+              }}
+            />
             <GymNavbar gym={gym} />
 
             <section className="bg-white dark:bg-slate-950">

@@ -1,6 +1,13 @@
+import { Seo } from "../../components/Seo";
+
 export function Contact() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
+      <Seo
+        title="Contact"
+        description="Get in touch with the FitManager team. Questions about plans, onboarding, or your gym account — we're happy to help."
+        path="/contact"
+      />
       <h1 className="text-4xl font-black text-slate-950 dark:text-white">Contact</h1>
       <form className="surface mt-8 grid gap-4 p-6">
         <input className="app-input" placeholder="Name" />

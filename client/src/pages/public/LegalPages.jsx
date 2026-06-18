@@ -1,12 +1,15 @@
 // Boilerplate legal pages. REVIEW AND EDIT before launch — replace the bracketed
 // placeholders and have a professional check them for your jurisdiction (India).
+import { Seo } from "../../components/Seo";
+
 const COMPANY = "[Your Company Name]";
 const CONTACT_EMAIL = "[your-support-email]";
 const LAST_UPDATED = "June 2026";
 
-function LegalShell({ title, children }) {
+function LegalShell({ title, description, path, children }) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
+      <Seo title={title} description={description} path={path} />
       <h1 className="text-3xl font-black text-slate-950 dark:text-white">{title}</h1>
       <p className="mt-2 text-sm text-slate-500">Last updated: {LAST_UPDATED}</p>
       <div className="mt-8 grid gap-5 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{children}</div>
@@ -25,7 +28,7 @@ function Section({ heading, children }) {
 
 export function Terms() {
   return (
-    <LegalShell title="Terms of Service">
+    <LegalShell title="Terms of Service" description="FitManager Terms of Service." path="/terms">
       <p>These Terms govern your use of FitManager (the "Service") operated by {COMPANY}. By creating an account or using the Service, you agree to these Terms.</p>
       <Section heading="1. The Service">
         <p>FitManager is gym-management software that lets gym owners manage members, plans, trainers, payments, and attendance, and publish a public gym page.</p>
@@ -54,7 +57,7 @@ export function Terms() {
 
 export function Privacy() {
   return (
-    <LegalShell title="Privacy Policy">
+    <LegalShell title="Privacy Policy" description="How FitManager collects, uses, and protects your data." path="/privacy">
       <p>This policy explains how {COMPANY} collects and uses information when you use FitManager.</p>
       <Section heading="1. Information We Collect">
         <p>Account details (name, email), gym and member records you enter (names, contact details, membership and payment records, attendance), and basic technical logs.</p>
@@ -80,7 +83,7 @@ export function Privacy() {
 
 export function Refund() {
   return (
-    <LegalShell title="Refund &amp; Cancellation Policy">
+    <LegalShell title="Refund &amp; Cancellation Policy" description="FitManager refund and cancellation policy for gym-owner subscriptions." path="/refund">
       <Section heading="Subscriptions">
         <p>Gym-owner subscriptions to FitManager are billed per the plan you choose. You may cancel at any time; cancellation stops future renewals. Fees already paid for the current period are non-refundable unless required by law.</p>
       </Section>
