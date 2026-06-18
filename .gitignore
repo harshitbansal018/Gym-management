@@ -7,6 +7,9 @@ node_modules/
 .env.*
 !.env.example
 !.env.production.example
+# The frontend API URL is public (it ships in the JS bundle), so the client's
+# production build config IS committed so Vercel always builds with it.
+!client/.env.production
 
 # Build output (re-generated with `npm run build`)
 dist/
