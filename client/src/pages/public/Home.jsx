@@ -163,8 +163,6 @@ export function Home() {
           <Link className="btn-primary mt-6" to="/register">Create My Gym</Link>
         </div>
       </section>
-
-      <footer className="border-t border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-950">© 2026 FitManager. Built for gym owners.</footer>
     </>
   );
 }

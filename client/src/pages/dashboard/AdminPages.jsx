@@ -3,9 +3,12 @@ import { ChartCard } from "../../components/ChartCard";
 import { DataTable } from "../../components/DataTable";
 import { SectionHeader } from "../../components/SectionHeader";
 import { StatCard } from "../../components/StatCard";
+import { SearchInput, Pagination } from "../../components/TableControls";
 import { ApiState, useApiData } from "../../hooks/useApiData";
+import { usePagedSearch } from "../../hooks/usePagedSearch";
 import { api } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
+import { usePrompt, useToast } from "../../context/FeedbackContext";
 import { statusClass } from "../../utils/statusStyles";
 
 const gymColumns = [{ key: "name", label: "Gym" }, { key: "email", label: "Email" }, { key: "subscription_plan", label: "Plan" }, { key: "subscription_status", label: "Status" }];
@@ -36,6 +39,7 @@ export function AdminDashboard() {
 function GymManager({ title, subtitle }) {
   const state = useApiData("/admin/gyms");
   const [busyId, setBusyId] = useState(null);
+  const paged = usePagedSearch(state.data, { keys: ["name", "email", "subscription_plan", "subscription_status"], pageSize: 12 });
 
   async function setStatus(gym, status) {
     setBusyId(gym.id);
@@ -52,6 +56,9 @@ function GymManager({ title, subtitle }) {
       <SectionHeader title={title} subtitle={subtitle} />
       <ApiState {...state} empty={!state.data.length}>
         <div className="surface overflow-hidden">
+          <div className="border-b border-slate-200 p-3 dark:border-slate-800">
+            <SearchInput value={paged.queryText} onChange={paged.setQueryText} placeholder="Search gyms by name, email, plan…" />
+          </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
               <thead className="bg-slate-50 dark:bg-slate-950/60">
@@ -62,7 +69,9 @@ function GymManager({ title, subtitle }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {state.data.map((gym) => (
+                {paged.total === 0 ? (
+                  <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">No results match your search.</td></tr>
+                ) : paged.pageRows.map((gym) => (
                   <tr key={gym.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                     <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{gym.name}</td>
                     <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{gym.email}</td>
@@ -85,6 +94,7 @@ function GymManager({ title, subtitle }) {
               </tbody>
             </table>
           </div>
+          <Pagination page={paged.page} totalPages={paged.totalPages} onPage={paged.setPage} rangeStart={paged.rangeStart} rangeEnd={paged.rangeEnd} total={paged.total} />
         </div>
       </ApiState>
     </>
@@ -101,20 +111,28 @@ export function AdminSubscriptions() {
 
 export function AdminRevenue() {
   const state = useApiData("/admin/payments");
-  return <><SectionHeader title="Revenue" /><ApiState {...state} empty={!state.data.length}><DataTable columns={paymentColumns} rows={state.data} /></ApiState></>;
+  return <><SectionHeader title="Revenue" /><ApiState {...state} empty={!state.data.length}><DataTable columns={paymentColumns} rows={state.data} searchable pageSize={15} searchPlaceholder="Search payments…" /></ApiState></>;
 }
 
 export function AdminUsers() {
   const state = useApiData("/admin/users");
+  const paged = usePagedSearch(state.data, { keys: ["name", "email", "role"], pageSize: 12 });
+  const prompt = usePrompt();
+  const toast = useToast();
 
   async function resetPassword(u) {
-    const newPassword = window.prompt(`Set a new password for ${u.email}\n(8+ chars, upper, lower, number, symbol):`);
+    const newPassword = await prompt({
+      title: "Reset user password",
+      message: `Set a new password for ${u.email}. Use 8+ characters with upper, lower, number, and symbol.`,
+      placeholder: "New password",
+      confirmLabel: "Reset password"
+    });
     if (!newPassword) return;
     try {
       await api.post(`/admin/users/${u.id}/reset-password`, { newPassword });
-      window.alert("Password reset. Share it with the user over WhatsApp.");
+      toast.success("Password reset. Share it with the user over WhatsApp.");
     } catch (err) {
-      window.alert(err.response?.data?.message || "Could not reset password.");
+      toast.error(err.response?.data?.message || "Could not reset password.");
     }
   }
 
@@ -123,13 +141,18 @@ export function AdminUsers() {
       <SectionHeader title="Users" subtitle="Reset a locked-out user's password here." />
       <ApiState {...state} empty={!state.data.length}>
         <div className="surface overflow-hidden">
+          <div className="border-b border-slate-200 p-3 dark:border-slate-800">
+            <SearchInput value={paged.queryText} onChange={paged.setQueryText} placeholder="Search users by name, email, role…" />
+          </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
               <thead className="bg-slate-50 dark:bg-slate-950/60">
                 <tr>{["Name", "Email", "Role", "Active", "Actions"].map((h) => <th key={h} className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">{h}</th>)}</tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {state.data.map((u) => (
+                {paged.total === 0 ? (
+                  <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">No results match your search.</td></tr>
+                ) : paged.pageRows.map((u) => (
                   <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                     <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{u.name}</td>
                     <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{u.email}</td>
@@ -141,6 +164,7 @@ export function AdminUsers() {
               </tbody>
             </table>
           </div>
+          <Pagination page={paged.page} totalPages={paged.totalPages} onPage={paged.setPage} rangeStart={paged.rangeStart} rangeEnd={paged.rangeEnd} total={paged.total} />
         </div>
       </ApiState>
     </>

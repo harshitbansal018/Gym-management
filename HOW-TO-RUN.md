@@ -66,25 +66,19 @@ Runs on http://localhost:5173 — **open this URL in your browser.**
 
 ## Part 2 — Run it live for real customers (production)
 
-The detailed guide is in **[DEPLOYMENT.md](DEPLOYMENT.md)**. Summary of the two paths:
+The detailed guide is in **[DEPLOYMENT.md](DEPLOYMENT.md)**. It deploys to managed
+platforms (no servers to administer):
 
-### Option A — One server with Docker (most self-contained)
-On a Linux server (e.g. AWS Mumbai, or any VPS) with Docker installed:
-```bash
-cp .env.production.example .env   # fill in secrets, DB password, your domain, WhatsApp number
-docker compose up -d --build
-docker compose exec server npm run seed   # one-time: create your admin login
-```
-Then point your domain's DNS at the server and **add HTTPS** (DEPLOYMENT.md shows a
-3-line Caddy config that gets free certificates automatically).
-
-### Option B — Managed platforms (no server admin)
 - **Database:** Neon (Mumbai region)
-- **API:** Render (root `server`, start `node src/db/migrate.js && node src/server.js`)
-- **Web:** Vercel or Netlify (root `client`, build `npm run build`, output `dist`)
+- **API:** Render — root `server`, build `npm ci`, start
+  `node src/db/migrate.js && node src/server.js`, health check `/health`.
+- **Web:** Vercel — root `client`, build `npm run build`, output `dist`. A
+  [`client/vercel.json`](client/vercel.json) sets the SPA rewrite so deep links don't 404.
 
-Either way you must set real values for: `DATABASE_URL`, `JWT_ACCESS_SECRET`,
-`JWT_REFRESH_SECRET`, `CORS_ORIGINS`, `PLATFORM_WHATSAPP`, and a strong admin password.
+Set real values for: `DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`,
+`CORS_ORIGINS`, `PLATFORM_WHATSAPP`, and a strong admin password on Render, and
+`VITE_API_URL` (your Render URL + `/api/v1`) on Vercel. Render and Vercel both
+provide HTTPS automatically.
 
 ---
 
@@ -106,12 +100,13 @@ gyms**, once *you* complete the 3 deployment/legal items below that only you can
 - **Automatic membership expiry:** members past their expiry date auto-flip to "expired" daily
 - **Legal pages:** Terms, Privacy, Refund (at `/terms`, `/privacy`, `/refund`) + footer links
 - Security middleware: Helmet, CORS allowlist, rate limiting, input validation; production request logging
-- Code-split frontend (loads ~2× faster) + Docker config + DB migrations + real database (Neon)
+- Code-split frontend (loads ~2× faster) + one-command DB migrations + real database (Neon)
+- SPA routing config for Vercel (`client/vercel.json`)
 
 ### ⚠️ YOUR action items before taking real money (I can't do these for you)
 | Item | Why it matters | What to do |
 |------|----------------|-----------|
-| **HTTPS** | Logins/tokens travel unencrypted without it. Mandatory. | Render + Vercel give HTTPS automatically. Self-host? use Caddy (see DEPLOYMENT.md). |
+| **HTTPS** | Logins/tokens travel unencrypted without it. Mandatory. | Render + Vercel give HTTPS automatically — nothing to configure. |
 | **Review the legal pages** | The Terms/Privacy/Refund text is *boilerplate* with `[placeholders]`. | Edit `client/src/pages/public/LegalPages.jsx` — fill in your company name + email; ideally have a professional check it. |
 | **Turn on database backups** | One bad day = all customer data gone. | In Neon, enable point-in-time restore / scheduled backups. |
 | **Set `PLATFORM_WHATSAPP`** | The owner activation screen needs your number. | Add it to your production env vars. |

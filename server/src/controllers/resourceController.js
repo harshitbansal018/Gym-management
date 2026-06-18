@@ -30,8 +30,18 @@ const tableConfig = {
   payments: {
     table: "payments",
     select: "id, gym_id, member_id, membership_plan_id, amount, status, paid_at, created_at",
+    // Join member/plan names so the owner sees who each payment is for.
+    listSql: `SELECT pay.id, pay.gym_id, pay.member_id, pay.membership_plan_id, pay.amount, pay.status, pay.paid_at, pay.created_at,
+                     COALESCE(mem.name, '—') AS member_name, COALESCE(mp.name, '—') AS plan_name
+              FROM payments pay
+              LEFT JOIN members mem ON mem.id = pay.member_id
+              LEFT JOIN membership_plans mp ON mp.id = pay.membership_plan_id
+              WHERE pay.gym_id = $1
+              ORDER BY pay.paid_at DESC`,
     createSql: "INSERT INTO payments (gym_id, member_id, membership_plan_id, amount, status) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-    createValues: (body, gymId) => [gymId, body.memberId || null, body.membershipPlanId || null, body.amount, body.status || "pending"]
+    createValues: (body, gymId) => [gymId, body.memberId || null, body.membershipPlanId || null, body.amount, body.status || "pending"],
+    updateSql: "UPDATE payments SET member_id = $3, membership_plan_id = $4, amount = $5, status = $6 WHERE id = $1 AND gym_id = $2 RETURNING *",
+    updateValues: (body, id, gymId) => [id, gymId, body.memberId || null, body.membershipPlanId || null, body.amount, body.status || "pending"]
   },
   dietPlans: {
     table: "diet_plans",
@@ -54,7 +64,8 @@ const tableConfig = {
 export function listResource(type) {
   return asyncHandler(async (req, res) => {
     const config = tableConfig[type];
-    const result = await query(`SELECT ${config.select} FROM ${config.table} WHERE gym_id = $1 ORDER BY created_at DESC`, [req.user.gym_id]);
+    const sql = config.listSql || `SELECT ${config.select} FROM ${config.table} WHERE gym_id = $1 ORDER BY created_at DESC`;
+    const result = await query(sql, [req.user.gym_id]);
     res.json({ success: true, data: result.rows });
   });
 }

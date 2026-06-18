@@ -1,11 +1,15 @@
 import { query } from "../db/pool.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { badRequest, notFound } from "../utils/httpError.js";
+import { badRequest, forbidden, notFound } from "../utils/httpError.js";
 
-// Resolve the member record for the currently logged-in member user.
+// Resolve the member record for the currently logged-in member user. `is_expired`
+// is computed in SQL (vs CURRENT_DATE) so it's correct even before the daily
+// expiry job has flipped the stored status.
 async function findMemberForUser(user) {
   const result = await query(
-    "SELECT id, name FROM members WHERE gym_id = $1 AND email = $2 LIMIT 1",
+    `SELECT id, name, status,
+            (status = 'expired' OR (expiry_date IS NOT NULL AND expiry_date < CURRENT_DATE)) AS is_expired
+     FROM members WHERE gym_id = $1 AND email = $2 LIMIT 1`,
     [user.gym_id, user.email]
   );
   return result.rows[0] || null;
@@ -16,6 +20,17 @@ async function findMemberForUser(user) {
 export const checkIn = asyncHandler(async (req, res) => {
   const member = await findMemberForUser(req.user);
   if (!member) throw notFound("No membership found for this account");
+
+  // Block check-in unless the membership is active and unexpired.
+  if (member.status !== "active" || member.is_expired) {
+    const expired = member.is_expired || member.status === "expired";
+    throw forbidden(
+      expired
+        ? "Your membership has expired. Please renew to check in."
+        : "Your membership isn't active yet. Please contact your gym.",
+      "MEMBERSHIP_INACTIVE"
+    );
+  }
 
   try {
     const result = await query(

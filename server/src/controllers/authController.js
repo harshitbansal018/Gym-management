@@ -56,7 +56,8 @@ export const register = asyncHandler(async (req, res) => {
       [gym.id]
     );
 
-    return userResult.rows[0];
+    // Carry the gym's branding on the user so the dashboard can white-label.
+    return { ...userResult.rows[0], gym_name: gym.name, gym_logo_url: gym.logo_url, gym_slug: gym.slug };
   });
 
   const refreshToken = signRefreshToken(user);
@@ -67,7 +68,13 @@ export const register = asyncHandler(async (req, res) => {
 
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  const result = await query("SELECT id, gym_id, name, email, password_hash, role, is_active, created_at FROM users WHERE email = $1", [email.toLowerCase()]);
+  const result = await query(
+    `SELECT u.id, u.gym_id, u.name, u.email, u.password_hash, u.role, u.is_active, u.created_at,
+            g.name AS gym_name, g.logo_url AS gym_logo_url, g.slug AS gym_slug
+     FROM users u LEFT JOIN gyms g ON g.id = u.gym_id
+     WHERE u.email = $1`,
+    [email.toLowerCase()]
+  );
   const user = result.rows[0];
 
   if (!user || !user.is_active) throw unauthorized("Invalid credentials");
@@ -91,7 +98,13 @@ export const refresh = asyncHandler(async (req, res) => {
   );
   if (!tokenResult.rowCount) throw unauthorized("Invalid refresh token");
 
-  const userResult = await query("SELECT id, gym_id, name, email, role, is_active, created_at FROM users WHERE id = $1", [payload.sub]);
+  const userResult = await query(
+    `SELECT u.id, u.gym_id, u.name, u.email, u.role, u.is_active, u.created_at,
+            g.name AS gym_name, g.logo_url AS gym_logo_url, g.slug AS gym_slug
+     FROM users u LEFT JOIN gyms g ON g.id = u.gym_id
+     WHERE u.id = $1`,
+    [payload.sub]
+  );
   const user = userResult.rows[0];
   if (!user || !user.is_active) throw unauthorized("Invalid refresh token");
 

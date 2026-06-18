@@ -5,6 +5,7 @@ import { router } from "./routes/AppRouter.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { GymProvider } from "./context/GymContext.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
+import { FeedbackProvider } from "./context/FeedbackContext.jsx";
 import "./styles/index.css";
 
 const Loading = () => (
@@ -16,9 +17,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <ThemeProvider>
       <AuthProvider>
         <GymProvider>
-          <Suspense fallback={<Loading />}>
-            <RouterProvider router={router} />
-          </Suspense>
+          <FeedbackProvider>
+            <Suspense fallback={<Loading />}>
+              <RouterProvider router={router} />
+            </Suspense>
+          </FeedbackProvider>
         </GymProvider>
       </AuthProvider>
     </ThemeProvider>

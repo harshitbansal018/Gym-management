@@ -11,7 +11,10 @@ export async function authenticate(req, _res, next) {
 
     const payload = verifyAccessToken(token);
     const result = await query(
-      "SELECT id, name, email, role, gym_id, is_active FROM users WHERE id = $1",
+      `SELECT u.id, u.name, u.email, u.role, u.gym_id, u.is_active,
+              g.name AS gym_name, g.logo_url AS gym_logo_url, g.slug AS gym_slug
+       FROM users u LEFT JOIN gyms g ON g.id = u.gym_id
+       WHERE u.id = $1`,
       [payload.sub]
     );
     const user = result.rows[0];

@@ -13,7 +13,14 @@ memberRoutes.post("/attendance", checkIn);
 memberRoutes.get("/attendance", myAttendance);
 
 memberRoutes.get("/dashboard", asyncHandler(async (req, res) => {
-  const memberResult = await query("SELECT * FROM members WHERE gym_id = $1 AND email = $2 LIMIT 1", [req.user.gym_id, req.user.email]);
+  const memberResult = await query(
+    `SELECT m.*, p.name AS plan_name, p.price, p.duration_days
+     FROM members m
+     LEFT JOIN membership_plans p ON p.id = m.membership_plan_id
+     WHERE m.gym_id = $1 AND m.email = $2
+     LIMIT 1`,
+    [req.user.gym_id, req.user.email]
+  );
   const member = memberResult.rows[0] || null;
 
   const [gym, payments, dietPlans, workoutPlans] = await Promise.all([

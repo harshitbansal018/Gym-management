@@ -79,6 +79,11 @@ export const workoutPlanValidator = [
   body("exercises").optional({ nullable: true }).trim().isLength({ max: 2000 }).withMessage("Exercises is too long")
 ];
 
+export const renewValidator = [
+  body("days").optional({ nullable: true }).isInt({ min: 1, max: 3650 }).withMessage("Days must be 1-3650"),
+  body("recordPayment").optional().isBoolean().withMessage("recordPayment must be a boolean")
+];
+
 export const gymUserValidator = [
   body("name").trim().isLength({ min: 2, max: 80 }).withMessage("Name is required"),
   body("email").trim().isEmail().normalizeEmail().withMessage("Valid email is required"),

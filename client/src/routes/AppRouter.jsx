@@ -4,6 +4,7 @@ import { PublicLayout } from "../layouts/PublicLayout";
 import { DashboardLayout } from "../layouts/DashboardLayout";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { SubscriptionGate } from "../components/SubscriptionGate";
+import { MemberGate } from "../components/MemberGate";
 import { Home } from "../pages/public/Home";
 import { Pricing } from "../pages/public/Pricing";
 import { About } from "../pages/public/About";
@@ -34,6 +35,7 @@ const GymProfile = named(owner, "GymProfile");
 const MembershipPlans = named(owner, "MembershipPlans");
 const Trainers = named(owner, "Trainers");
 const Members = named(owner, "Members");
+const Renewals = named(owner, "Renewals");
 const Payments = named(owner, "Payments");
 const OwnerAttendance = named(owner, "OwnerAttendance");
 const DietPlans = named(owner, "DietPlans");
@@ -99,6 +101,7 @@ export const router = createBrowserRouter([
           { path: "plans", element: <MembershipPlans /> },
           { path: "trainers", element: <Trainers /> },
           { path: "members", element: <Members /> },
+          { path: "renewals", element: <Renewals /> },
           { path: "payments", element: <Payments /> },
           { path: "attendance", element: <OwnerAttendance /> },
           { path: "diet-plans", element: <DietPlans /> },
@@ -126,16 +129,19 @@ export const router = createBrowserRouter([
   {
     element: <ProtectedRoute roles={["member"]} />,
     children: [{
-      path: "/member",
-      element: <DashboardLayout role="member" />,
-      children: [
-        { index: true, element: <MemberDashboard /> },
-        { path: "membership", element: <MembershipPage /> },
-        { path: "payments", element: <MemberPayments /> },
-        { path: "workout-plan", element: <MemberWorkoutPlan /> },
-        { path: "diet-plan", element: <MemberDietPlan /> },
-        { path: "settings", element: <Settings title="Settings" /> }
-      ]
+      element: <MemberGate />,
+      children: [{
+        path: "/member",
+        element: <DashboardLayout role="member" />,
+        children: [
+          { index: true, element: <MemberDashboard /> },
+          { path: "membership", element: <MembershipPage /> },
+          { path: "payments", element: <MemberPayments /> },
+          { path: "workout-plan", element: <MemberWorkoutPlan /> },
+          { path: "diet-plan", element: <MemberDietPlan /> },
+          { path: "settings", element: <Settings title="Settings" /> }
+        ]
+      }]
     }]
   },
   { path: "/dashboard", element: <Navigate to="/owner" replace /> },

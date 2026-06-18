@@ -5,6 +5,8 @@ import { gymAttendance } from "../controllers/attendanceController.js";
 import { getBillingStatus, getGymProfile, updateGymProfile } from "../controllers/gymController.js";
 import { createResource, deleteResource, listResource, updateResource } from "../controllers/resourceController.js";
 import { createMemberWithLogin } from "../controllers/memberController.js";
+import { createPayment, updatePayment } from "../controllers/paymentController.js";
+import { listRenewals, renewMembership } from "../controllers/renewalController.js";
 import { createGymUser, listGymUsers, resetMemberPassword } from "../controllers/userController.js";
 import { authenticate, authorize, requireActiveSubscription, requireGymAccess } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
@@ -17,6 +19,7 @@ import {
   memberWithLoginValidator,
   membershipPlanValidator,
   paymentValidator,
+  renewValidator,
   trainerValidator,
   uuidParam,
   workoutPlanValidator
@@ -55,8 +58,12 @@ ownerRoutes.put("/members/:id", uuidParam(), memberValidator, validate, updateRe
 ownerRoutes.delete("/members/:id", uuidParam(), validate, deleteResource("members"));
 ownerRoutes.post("/members/:id/reset-password", uuidParam(), resetPasswordValidator, validate, resetMemberPassword);
 
+ownerRoutes.get("/renewals", listRenewals);
+ownerRoutes.post("/members/:id/renew", uuidParam(), renewValidator, validate, renewMembership);
+
 ownerRoutes.get("/payments", listResource("payments"));
-ownerRoutes.post("/payments", paymentValidator, validate, createResource("payments"));
+ownerRoutes.post("/payments", paymentValidator, validate, createPayment);
+ownerRoutes.put("/payments/:id", uuidParam(), paymentValidator, validate, updatePayment);
 ownerRoutes.delete("/payments/:id", uuidParam(), validate, deleteResource("payments"));
 
 ownerRoutes.get("/diet-plans", listResource("dietPlans"));

@@ -1,31 +1,91 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { FiClock, FiMail, FiMapPin, FiPhone } from "react-icons/fi";
+import { FiClock, FiMail, FiMapPin, FiMenu, FiPhone, FiX } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import { ApiState, useApiData } from "../../hooks/useApiData";
 import { waLink } from "../../utils/whatsapp";
+
+const sections = [["Plans", "#plans"], ["Trainers", "#trainers"], ["Contact", "#contact"]];
 
 // Standalone, gym-branded navbar. Deliberately has NO FitManager marketing links
 // (Home/Pricing/About) — this is the gym's own website for its customers.
 function GymNavbar({ gym }) {
   const joinLink = waLink(gym.whatsapp, `Hi ${gym.name}, I'd like to join your gym.`);
+  const [open, setOpen] = useState(false);
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-        <a href="#top" className="flex items-center gap-2">
-          {gym.logo_url && <img className="h-8 w-8 rounded-md object-cover" src={gym.logo_url} alt={gym.name} />}
-          <span className="text-lg font-black text-slate-950 dark:text-white">{gym.name}</span>
+        <a href="#top" className="flex min-w-0 items-center gap-2">
+          {gym.logo_url && <img className="h-8 w-8 shrink-0 rounded-md object-cover" src={gym.logo_url} alt={gym.name} />}
+          <span className="truncate text-lg font-black text-slate-950 dark:text-white">{gym.name}</span>
         </a>
         <div className="hidden items-center gap-6 md:flex">
-          <a href="#plans" className="text-sm font-medium text-slate-600 hover:text-brand-600 dark:text-slate-300">Plans</a>
-          <a href="#trainers" className="text-sm font-medium text-slate-600 hover:text-brand-600 dark:text-slate-300">Trainers</a>
-          <a href="#contact" className="text-sm font-medium text-slate-600 hover:text-brand-600 dark:text-slate-300">Contact</a>
+          {sections.map(([label, href]) => (
+            <a key={href} href={href} className="text-sm font-medium text-slate-600 hover:text-brand-600 dark:text-slate-300">{label}</a>
+          ))}
         </div>
         <div className="flex items-center gap-2">
-          <Link className="btn-secondary" to="/login">Member Login</Link>
+          <Link className="btn-secondary hidden sm:inline-flex" to="/login">Member Login</Link>
           {joinLink && <a className="btn-primary bg-emerald-600 hover:bg-emerald-700" href={joinLink} target="_blank" rel="noreferrer"><FaWhatsapp /> Join</a>}
+          <button className="btn-secondary px-2 md:hidden" onClick={() => setOpen((value) => !value)} aria-label="Toggle menu" aria-expanded={open}>
+            {open ? <FiX /> : <FiMenu />}
+          </button>
         </div>
       </nav>
+
+      {open && (
+        <div className="flex flex-col gap-1 border-t border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-950 md:hidden">
+          {sections.map(([label, href]) => (
+            <a key={href} href={href} onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900">{label}</a>
+          ))}
+          <Link className="btn-secondary mt-2 w-full sm:hidden" to="/login" onClick={() => setOpen(false)}>Member Login</Link>
+        </div>
+      )}
     </header>
+  );
+}
+
+// Gym-branded footer for the gym's own public site. Stays on-brand for the gym;
+// FitManager only gets a subtle "Powered by" credit.
+function GymFooter({ gym }) {
+  const join = waLink(gym.whatsapp, `Hi ${gym.name}, I'd like to join your gym.`);
+  return (
+    <footer className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <div className="mx-auto max-w-7xl px-4 py-12">
+        <div className="grid gap-8 md:grid-cols-3">
+          <div>
+            <div className="flex items-center gap-2">
+              {gym.logo_url && <img className="h-8 w-8 rounded-md object-cover" src={gym.logo_url} alt={gym.name} />}
+              <span className="text-lg font-black text-slate-950 dark:text-white">{gym.name}</span>
+            </div>
+            <p className="mt-3 max-w-xs text-sm text-slate-500 dark:text-slate-400">{gym.description || "A modern fitness studio. Train with us today."}</p>
+          </div>
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wide text-slate-900 dark:text-white">Quick Links</h3>
+            <ul className="mt-4 space-y-2 text-sm">
+              <li><a href="#plans" className="text-slate-500 hover:text-brand-600 dark:text-slate-400">Membership Plans</a></li>
+              <li><a href="#trainers" className="text-slate-500 hover:text-brand-600 dark:text-slate-400">Trainers</a></li>
+              <li><a href="#contact" className="text-slate-500 hover:text-brand-600 dark:text-slate-400">Contact</a></li>
+              <li><Link to="/login" className="text-slate-500 hover:text-brand-600 dark:text-slate-400">Member Login</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wide text-slate-900 dark:text-white">Get in Touch</h3>
+            <ul className="mt-4 space-y-2 text-sm text-slate-500 dark:text-slate-400">
+              {gym.address && <li className="flex gap-2"><FiMapPin className="mt-0.5 shrink-0 text-brand-600" /> {gym.address}</li>}
+              {gym.phone && <li className="flex gap-2"><FiPhone className="mt-0.5 shrink-0 text-brand-600" /> <a className="hover:text-brand-600" href={`tel:${gym.phone}`}>{gym.phone}</a></li>}
+              {gym.email && <li className="flex gap-2"><FiMail className="mt-0.5 shrink-0 text-brand-600" /> <a className="hover:text-brand-600" href={`mailto:${gym.email}`}>{gym.email}</a></li>}
+              {gym.working_hours && <li className="flex gap-2"><FiClock className="mt-0.5 shrink-0 text-brand-600" /> {gym.working_hours}</li>}
+              {join && <li><a className="inline-flex items-center gap-2 font-semibold text-emerald-600 hover:text-emerald-700" href={join} target="_blank" rel="noreferrer"><FaWhatsapp /> Chat on WhatsApp</a></li>}
+            </ul>
+          </div>
+        </div>
+        <div className="mt-10 flex flex-col items-center justify-between gap-2 border-t border-slate-200 pt-6 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400 sm:flex-row">
+          <span>© {new Date().getFullYear()} {gym.name}. All rights reserved.</span>
+          <span className="text-xs text-slate-400 dark:text-slate-500">Powered by FitManager</span>
+        </div>
+      </div>
+    </footer>
   );
 }
 
@@ -110,13 +170,7 @@ export function GymWebsite() {
               </div>
             </section>
 
-            <footer className="border-t border-slate-200 bg-white py-8 dark:border-slate-800 dark:bg-slate-950">
-              <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 text-sm text-slate-500 sm:flex-row">
-                <span className="font-semibold text-slate-700 dark:text-slate-300">{gym.name}</span>
-                <span>{gym.address || ""}</span>
-                <Link className="text-slate-400 hover:text-brand-600" to="/login">Member Login</Link>
-              </div>
-            </footer>
+            <GymFooter gym={gym} />
           </>
         )}
       </ApiState>
