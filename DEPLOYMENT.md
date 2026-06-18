@@ -43,7 +43,7 @@ deploy, create the platform admin once from the Render **Shell**:
 ```bash
 npm run seed
 ```
-Note your API URL, e.g. `https://fitmanager-api.onrender.com`.
+Note your API URL, e.g. `https://gym-management-jm0b.onrender.com`.
 
 > Render's free tier sleeps after inactivity, so the first request after idle is
 > slow. Fine for a pilot; upgrade the instance for production traffic.
@@ -57,7 +57,7 @@ Note your API URL, e.g. `https://fitmanager-api.onrender.com`.
    build `npm run build`, output `dist`, plus a SPA rewrite so React-Router deep
    links don't 404 on refresh).
 3. Add one **Environment Variable**:
-   `VITE_API_URL = https://fitmanager-api.onrender.com/api/v1`
+   `VITE_API_URL = https://gym-management-jm0b.onrender.com/api/v1`
    (your Render URL + `/api/v1`). This is read at **build time**, so redeploy
    after changing it.
 4. Deploy, then copy your Vercel URL (e.g. `https://fitmanager.vercel.app`).
