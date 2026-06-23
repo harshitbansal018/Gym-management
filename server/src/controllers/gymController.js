@@ -1,7 +1,6 @@
 import { query } from "../db/pool.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { notFound } from "../utils/httpError.js";
-import { createUniqueGymSlug } from "../utils/slug.js";
 
 export const listGyms = asyncHandler(async (_req, res) => {
   const result = await query("SELECT * FROM gyms ORDER BY created_at DESC");
@@ -27,12 +26,8 @@ export const updateGymProfile = asyncHandler(async (req, res) => {
     paymentQrUrl
   } = req.body;
 
-  let slug;
-  if (name) {
-    const clientLike = { query };
-    slug = await createUniqueGymSlug(clientLike, name);
-  }
-
+  // The public URL (slug) is fixed at registration and must NOT change when the
+  // owner edits their profile — otherwise their gym website link would break.
   const result = await query(
     `UPDATE gyms
      SET name = COALESCE($2, name),
@@ -42,13 +37,12 @@ export const updateGymProfile = asyncHandler(async (req, res) => {
          email = COALESCE($6, email),
          description = COALESCE($7, description),
          working_hours = COALESCE($8, working_hours),
-         slug = COALESCE($9, slug),
-         whatsapp = COALESCE($10, whatsapp),
-         payment_qr_url = COALESCE($11, payment_qr_url),
+         whatsapp = COALESCE($9, whatsapp),
+         payment_qr_url = COALESCE($10, payment_qr_url),
          updated_at = now()
      WHERE id = $1
      RETURNING *`,
-    [req.user.gym_id, name, logoUrl, address, phone, email, description, workingHours, slug, whatsapp, paymentQrUrl]
+    [req.user.gym_id, name, logoUrl, address, phone, email, description, workingHours, whatsapp, paymentQrUrl]
   );
 
   if (!result.rowCount) throw notFound("Gym profile not found");
